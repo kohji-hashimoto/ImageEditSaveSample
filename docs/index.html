@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas test</title>
+    <style>
+        #mycanvas{
+            border: 10px solid #999;
+            cursor: crosshair;
+        }
+        .thumbnail{
+            border: 2px solid #999;
+            margin-right: 5px;
+        }
+    </style>
+
+</head>
+<body>
+    <!-- view area -->
+    <p>
+        <select id="pencolor">
+            <option value="black">Black</option>
+            <option value="red">Red</option>
+        </select>
+        <select id="penwidth">
+            <option value="1">細</option>
+            <option value="3">中</option>
+            <option value="5">大</option>
+        </select>
+        <input type="button" id="erase" value="消去">
+        <input type="button" id="save" value="保存">
+    </p>
+    <canvas id="mycanvas" width="550px" height="400px">
+        Canvasに対応していません。
+    </canvas>
+    <div id="gallery"></div>
+
+    <!-- script area -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script>
+        $(function() {
+           var canvas = document.getElementById('mycanvas');
+            if (!canvas || !canvas.getContext) return false;
+            var ctx = canvas.getContext('2d');
+
+            var baseimg = new Image();
+            baseimg.src = "img/clip_image.jpg?" + new Date().getTime();
+            //baseimg.src = "./img/300x300.png";
+
+            baseimg.onload = function() {
+                ctx.drawImage(baseimg, 0, 0);
+            }
+
+            var startX,
+                startY,
+                x,
+                y,
+                borderWidth = 10,
+                isDrawing = false;
+
+            $('#mycanvas').mousedown(function(e) {
+                    isDrawing = true;
+                    startX = e.pageX - $(this).offset().left - borderWidth;
+                    startY = e.pageY - $(this).offset().top - borderWidth;
+            })
+            .mousemove(function(e) {
+                if(!isDrawing) return;
+                x = e.pageX - $(this).offset().left - borderWidth;
+                y = e.pageY - $(this).offset().top - borderWidth;
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+
+                startX = x;
+                startY = y;
+
+            }).mouseup(function(){
+                isDrawing = false;
+            }).mouseleave(function(){
+                isDrawing = false;
+            });
+
+            $('#pencolor').change(function(){
+                ctx.strokeStyle = $(this).val();
+            });
+            $("#penwidth").change(function(){
+                ctx.lineWidth = $(this).val();
+            });
+            $("#erase").click(function(){
+                ctx.clearRect(0,0, canvas.width, canvas.height);
+                ctx.drawImage(baseimg, 0, 0);
+            });
+            $("#save").click(function(){
+                var img = $('<img>').attr({
+                    width: 275,
+                    height: 200,
+                    src: canvas.toDataURL()
+                });
+                $("#gallery").append(img.addClass('thumbnail'));
+            });
+        });
+    </script>
+
+</body>
+</html>
